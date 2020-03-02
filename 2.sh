@@ -1,40 +1,79 @@
-1) Просмотр директорий /etc
+1) Просмотр директорий
 
-vud@SERVER-RDP-COUS:~$ cat /etc/resolv.conf
-# This file is managed by man:systemd-resolved(8). Do not edit.
-#
-# This is a dynamic resolv.conf file for connecting local clients directly to
-# all known uplink DNS servers. This file lists all configured search domains.
-#
-# Third party programs must not access this file directly, but only through the
-# symlink at /etc/resolv.conf. To manage man:resolv.conf(5) in a different way,
-# replace this symlink by a static file or a different symlink.
-#
-# See man:systemd-resolved.service(8) for details about the supported modes of
-# operation for /etc/resolv.conf.
+vud@zharkov:~$ ls -l /etc/ /proc/ /home/
 
-# No DNS servers known.
-nameserver 188.72.74.3
-nameserver 188.72.75.23
-vud@SERVER-RDP-COUS:~$ 
-vud@SERVER-RDP-COUS:~$ 
-vud@SERVER-RDP-COUS:~$ ls -l /etc/realmd.conf 
--rw-r--r-- 1 root root 280 мар 30  2019 /etc/realmd.conf
-vud@SERVER-RDP-COUS:~$ cat /etc/realmd.conf 
-[users]
-default-home = /home/%D/%U
-default-shell = /bin/bash
+2) Просмотр файлов 
 
-[active-directory]
-default-client = sssd
-os-name = Ubuntu
-os-version = 18.10
+vud@zharkov:~$ cat /etc/ucf.conf
 
-[service]
-automatic-install = no
+# Если файл большой - лучше запайпить через less
+vud@zharkov:~$ cat /etc/ucf.conf | less 
 
-[dvrc.ru]
-fully-qualified-names = yes
-automatic-id-mapping = no
-user-principal = yes
-manage-system = yes
+# Можно сразу через любой редактор (vim, nano)
+vud@zharkov:~$ vim /etc/ucf.conf
+
+3) Прочитать про команду cat
+vud@zharkov:~$ man cat
+CAT(1)                                                         User Commands                                                        CAT(1)
+
+NAME
+       cat - concatenate files and print on the standard output
+
+4) Создать два файла при помощи cat и объеденить их в третий файл. Просмотреть содержимое файла, переименовать его.
+
+vud@zharkov:~$ cat > test1.txt
+Тестовый файл созданный cat
+Вторая строка файла    
+^C
+vud@zharkov:~$ cat > test2.txt
+Второй тестовый файл
+Вторая тестовая строка второго файла
+^C
+vud@zharkov:~$ cat test1.txt test2.txt > output.txt
+vud@zharkov:~$ cat output.txt 
+Тестовый файл созданный cat
+Вторая строка файла
+Второй тестовый файл
+Вторая тестовая строка второго файла
+vud@zharkov:~$ 
+vud@zharkov:~$ mv output.txt rename_output.txt
+vud@zharkov:~$ cat rename_output.txt 
+Тестовый файл созданный cat
+Вторая строка файла
+Второй тестовый файл
+Вторая тестовая строка второго файла
+vud@zharkov:~$ 
+vud@zharkov:~$ cat output.txt
+cat: output.txt: No such file or directory
+
+5) Подсчитать скрытые файлы в домашнем каталоге 
+# Можно сделать вот так, но также подсчитает и скрытые директории. Первое число это кол-во строк, т.е. кол-во "файлов".
+vud@zharkov:~$ ls -a | grep "^\." | wc  
+     45      45     491
+# Другой способ, чтобы наверняка подсчитать только файлы - использовать find
+vud@zharkov:~$ find ~/ -maxdepth 1 -type f | grep "/\." | wc 
+     22      22     539
+
+6) Попробовать вывести с помощью cat все файлы в директории /etc. Направить ошибки в отдельный файл в вашей 
+домашней директории. Сколько файлов, которые не удалось посмотреть, оказалось в списке?
+# Использовал команду из предыдущего пункта, обёрнутую в Command Substitution. На месте $(CMD) останется OUTPUT выполненной 
+# команды. Если делать с sudo, то ошибок нет
+sudo cat $(find /etc -maxdepth 1 -type f) >> ~/etc-output.txt
+
+# Выполним без sudo и направим ошибки в файл etc-erorrs.txt
+
+vud@zharkov:~$ cat $(find /etc -maxdepth 1 -type f) >> ~/etc-output.txt 2> etc-errors.txt
+
+vud@zharkov:~$ cat etc-errors.txt 
+cat: /etc/sudoers: Permission denied
+cat: /etc/gshadow-: Permission denied
+cat: /etc/krb5.keytab: Permission denied
+cat: /etc/.pwd.lock: Permission denied
+cat: /etc/gshadow: Permission denied
+cat: /etc/shadow-: Permission denied
+cat: /etc/shadow: Permission denied
+vud@zharkov:~$ cat etc-errors.txt | wc
+      7      28     265
+
+
+
