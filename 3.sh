@@ -46,7 +46,61 @@ cat: file3: No such file or directory
 Случайное содержимое
 
 
-2) Создать два произвольных файла.
-Первому присвоить права на чтение, запись для владельца и группы, только на чтение — для всех.
-Второму присвоить права на чтение, запись — только для владельца. Сделать это в численном и символьном виде.
-Создать пользователя, обладающего возможностью выполнять действия от имени суперпользователя.
+# 2) Создать два произвольных файла.
+# Первому присвоить права на чтение, запись для владельца и группы, только на чтение — для всех.
+# Второму присвоить права на чтение, запись — только для владельца. Сделать это в численном и символьном виде.
+# Создать пользователя, обладающего возможностью выполнять действия от имени суперпользователя.
+
+[vud@localhost dz]$ touch new1 new2
+[vud@localhost dz]$ ls -l
+total 0
+-rw-rw-r--. 1 vud vud 0 Mar  6 21:25 new1 # Права уже присвоились по заданию. Сделаю два второго файла
+-rw-rw-r--. 1 vud vud 0 Mar  6 21:25 new2
+
+[vud@localhost dz]$ chmod go-rw new2 
+[vud@localhost dz]$ ls -l
+total 0
+-rw-rw-r--. 1 vud vud 0 Mar  6 21:25 new1
+-rw-------. 1 vud vud 0 Mar  6 21:25 new2
+
+[vud@localhost dz]$ rm new2 ; touch new2
+[vud@localhost dz]$ ls -l
+total 0
+-rw-rw-r--. 1 vud vud 0 Mar  6 21:25 new1
+-rw-rw-r--. 1 vud vud 0 Mar  6 21:28 new2
+
+[vud@localhost dz]$ chmod 0600 new2 
+[vud@localhost dz]$ ls -l
+total 0
+-rw-rw-r--. 1 vud vud 0 Mar  6 21:25 new1
+-rw-------. 1 vud vud 0 Mar  6 21:28 new2
+
+[vud@localhost dz]$ sudo useradd needs_tobe_root
+[vud@localhost dz]$ sudo passwd needs_tobe_root
+Changing password for user needs_tobe_root.
+New password: 
+BAD PASSWORD: The password fails the dictionary check - it is based on a dictionary word
+Retype new password: 
+passwd: all authentication tokens updated successfully.
+[vud@localhost dz]$ su - needs_tobe_root
+Password: 
+[needs_tobe_root@localhost ~]$ sudo cat /etc/shadow
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for needs_tobe_root: 
+needs_tobe_root is not in the sudoers file.  This incident will be reported.
+
+[needs_tobe_root@localhost ~]$ su - vud
+Password: 
+[vud@localhost ~]$ sudo usermod -aG wheel needs_tobe_root
+[vud@localhost ~]$ su - needs_tobe_root
+Password: 
+[needs_tobe_root@localhost ~]$ sudo cat /etc/shadow | tail -1
+needs_tobe_root:$6$xQIxcinzoN.3qS8d$IgFjqbPQLfsegL.P6j35e4xwTHomc2Rqzr8O.rxNsWC23hGKIRoA84PN6MASmCi67rizlDMwfYvIurtgJJe30.:18327:0:99999:7:::
+
