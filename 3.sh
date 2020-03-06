@@ -104,3 +104,90 @@ Password:
 [needs_tobe_root@localhost ~]$ sudo cat /etc/shadow | tail -1
 needs_tobe_root:$6$xQIxcinzoN.3qS8d$IgFjqbPQLfsegL.P6j35e4xwTHomc2Rqzr8O.rxNsWC23hGKIRoA84PN6MASmCi67rizlDMwfYvIurtgJJe30.:18327:0:99999:7:::
 
+
+# 3) Создать группу developer и несколько пользователей, входящих в нее.
+# Создать директорию для совместной работы.
+# Сделать так, чтобы созданные одними пользователями файлы могли изменять другие пользователи этой группы.
+
+[vud@localhost dz]$ groupadd developer
+[vud@localhost dz]$ mkdir for_devs
+[vud@localhost dz]$ ls -l
+total 0
+drwxrwxr-x. 2 vud vud 6 Mar  6 21:40 for_devs
+
+[vud@localhost dz]$ sudo usermod -aG developer vud 
+[vud@localhost dz]$ sudo usermod -aG developer needs_tobe_root
+[vud@localhost dz]$ chmod g+rws for_devs/
+[vud@localhost dz]$ sudo chown :developer for_devs/
+[vud@localhost dz]$ ls -l
+total 0
+drwxrwsr-x. 2 vud developer 6 Mar  6 21:40 for_devs 
+# Теперь файлы, созданные в директории будут наследовать группу developer, т.к. задан sguid
+[vud@localhost dz]$ cd for_devs/
+[vud@localhost for_devs]$ touch test_file_vud
+[vud@localhost for_devs]$ su - needs_tobe_root
+Password: 
+[needs_tobe_root@localhost for_devs]$ touch test_file_needs
+[needs_tobe_root@localhost for_devs]$ ls -l
+total 0
+-rw-rw-r--. 1 needs_tobe_root developer 0 Mar  6 21:48 test_file_needs
+-rw-rw-r--. 1 vud             developer 0 Mar  6 21:46 test_file_vud
+# Пользователь needs_tobe_root сможет записать файл test_file_needs
+[needs_tobe_root@localhost for_devs]$ echo Файл другого пользователя записан > test_file_vud 
+[needs_tobe_root@localhost for_devs]$ cat test_file_vud 
+Файл другого пользователя записан
+
+
+#4) Создать в директории для совместной работы поддиректорию для обмена файлами, но чтобы удалять файлы могли только их создатели.
+
+ # Надо задать sticky bit для директории
+ [needs_tobe_root@localhost for_devs]$ mkdir share
+[needs_tobe_root@localhost for_devs]$ ls -l
+total 4
+drwxrwsr-x. 2 needs_tobe_root developer  6 Mar  6 21:52 share
+ 
+[needs_tobe_root@localhost for_devs]$ chmod +t share/
+[needs_tobe_root@localhost for_devs]$ touch share/vud_wont_delete
+[needs_tobe_root@localhost for_devs]$ 
+[root@localhost ~]# su - vud
+[vud@localhost ~]$ rm dz/for_devs/share/vud_wont_delete 
+rm: cannot remove 'dz/for_devs/share/vud_wont_delete': Operation not permitted
+ 
+# Уберем стики бит для проверки удаления
+[vud@localhost ~]$ chmod -t dz/for_devs/share/
+chmod: changing permissions of 'dz/for_devs/share/': Operation not permitted # Кстати, chmod +t задался без sudo, а убрать только с sudo?
+[vud@localhost ~]$ sudo chmod -t dz/for_devs/share/
+[vud@localhost ~]$ rm dz/for_devs/share/vud_wont_delete 
+[vud@localhost ~]$ ls -l dz/for_devs/share/
+total 0
+
+
+# 5) Создать директорию, в которой есть несколько файлов.
+# Сделать так, чтобы открыть файлы можно было, только зная имя файла, а через ls список файлов посмотреть было нельзя.
+
+[vud@localhost dz]$ mkdir close_directory
+[vud@localhost dz]$ ls -l
+total 0
+drwxrwxr-x. 2 vud vud        6 Mar  6 21:59 close_directory
+
+[vud@localhost dz]$ echo Файл открыт! > close_directory/hidden_file
+[vud@localhost dz]$ cat close_directory/hidden_file 
+Файл открыт!
+[vud@localhost dz]$ ls -l close_directory/
+total 4
+-rw-rw-r--. 1 vud vud 23 Mar  6 22:00 hidden_file
+
+# Директория читается, файл открывается. Изменим права директории. 
+
+d-wx-wx--x. 2 vud vud       25 Mar  6 22:00 close_directory
+drwxrwsr-x. 3 vud developer 63 Mar  6 21:52 for_devs
+[vud@localhost dz]$ ls -l close_directory/
+ls: cannot open directory 'close_directory/': Permission denied
+[vud@localhost dz]$ cat close_directory/hidden_file
+Файл открыт!
+
+# Занятно, что в этом случае на имя файла не работает tab
+
+
+
+
