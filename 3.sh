@@ -179,6 +179,9 @@ total 4
 
 # Директория читается, файл открывается. Изменим права директории. 
 
+[vud@localhost dz]$ chmod -r close_directory/
+[vud@localhost dz]$ ls -l
+total 0
 d-wx-wx--x. 2 vud vud       25 Mar  6 22:00 close_directory
 drwxrwsr-x. 3 vud developer 63 Mar  6 21:52 for_devs
 [vud@localhost dz]$ ls -l close_directory/
