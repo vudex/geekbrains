@@ -110,7 +110,6 @@ Sun Mar 8 22:51:01 +10 2020 116M /home/vud
 [root@localhost ~]# cat for_cron.sh 
 #!/bin/bash
 dirs=$(ls -d /home/*)
-#echo $dirs
 for d in $dirs; do
         echo $(date) $(du -sh "$d") >> /root/report.txt
 done
